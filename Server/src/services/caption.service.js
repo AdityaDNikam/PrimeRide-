@@ -172,4 +172,59 @@ const updateCaptainService = async (captainId, updateData) => {
     return captain;
 };
 
-export { createCaptain, loginCaptainService, updateCaptainService };
+const deleteCaptainService = async (captainId, password) => {
+    if (!password) {
+        throw new ApiError(400, "Password is required");
+    }
+
+    const captain = await Captain.findById(captainId).select("+Caption_Details.Password");
+    if (!captain) {
+        throw new ApiError(404, "Captain not found");
+    }
+
+    const isPasswordValid = await captain.comparePassword(password);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Incorrect password");
+    }
+
+    const deletedCaptain = await Captain.findByIdAndDelete(captainId);
+    if (!deletedCaptain) {
+        throw new ApiError(404, "Captain not found");
+    }
+
+    return deletedCaptain;
+};
+
+const updateCaptainPasswordService = async (captainId, oldPassword, newPassword) => {
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Both old password and new password are required");
+    }
+
+    if (oldPassword === newPassword) {
+        throw new ApiError(400, "New password cannot be the same as the old password");
+    }
+
+    const captain = await Captain.findById(captainId).select("+Caption_Details.Password");
+    if (!captain) {
+        throw new ApiError(404, "Captain not found");
+    }
+
+    const isPasswordValid = await captain.comparePassword(oldPassword);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Incorrect old password");
+    }
+
+    captain.Caption_Details.Password = newPassword;
+    await captain.save();
+
+    const updatedCaptain = await Captain.findById(captainId).select("-Caption_Details.Password");
+    return updatedCaptain;
+};
+
+export { 
+    createCaptain, 
+    loginCaptainService, 
+    updateCaptainService,
+    deleteCaptainService,
+    updateCaptainPasswordService
+};

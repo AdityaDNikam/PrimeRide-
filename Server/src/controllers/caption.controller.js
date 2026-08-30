@@ -2,7 +2,9 @@ import { validationResult } from "express-validator";
 import { 
     createCaptain, 
     loginCaptainService, 
-    updateCaptainService 
+    updateCaptainService,
+    deleteCaptainService,
+    updateCaptainPasswordService
 } from "../services/caption.service.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import asyncHandler from "../utils/AsyncHandler.js";
@@ -107,4 +109,45 @@ const updateCaptain = asyncHandler(async (req, res) => {
         .json(new ApiResponce(200, updatedCaptain, "Captain details updated successfully"));
 });
 
-export { registerCaptain, loginCaptain, logoutCaptain, updateCaptain };
+const deleteCaptain = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { Password } = req.body;
+
+    await deleteCaptainService(req.captain._id, Password);
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", cookieOptions)
+        .clearCookie("refreshToken", cookieOptions)
+        .json(new ApiResponce(200, {}, "Captain account deleted successfully"));
+});
+
+const updateCaptainPassword = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { oldPassword, newPassword } = req.body;
+
+    const updatedCaptain = await updateCaptainPasswordService(req.captain._id, oldPassword, newPassword);
+
+    return res
+        .status(200)
+        .json(new ApiResponce(200, updatedCaptain, "Captain password updated successfully"));
+});
+
+export { 
+    registerCaptain, 
+    loginCaptain, 
+    logoutCaptain, 
+    updateCaptain,
+    deleteCaptain,
+    updateCaptainPassword
+};

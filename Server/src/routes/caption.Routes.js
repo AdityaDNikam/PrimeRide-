@@ -4,7 +4,9 @@ import {
     registerCaptain, 
     loginCaptain, 
     logoutCaptain, 
-    updateCaptain 
+    updateCaptain,
+    deleteCaptain,
+    updateCaptainPassword
 } from "../controllers/caption.controller.js";
 import { verifyCaptainJWT } from "../middleware/auth.middleware.js";
 
@@ -49,6 +51,21 @@ router.patch("/update-details", [
     body("Vehicle.VehicleType").optional().isIn(["bike", "car", "auto"]).withMessage("Vehicle type must be bike, car, or auto")
 ],
     updateCaptain
+);
+
+router.patch("/update-password", [
+    verifyCaptainJWT,
+    body("oldPassword").isLength({ min: 6 }).withMessage("Old password must be at least 6 characters long"),
+    body("newPassword").isLength({ min: 6 }).withMessage("New password must be at least 6 characters long")
+],
+    updateCaptainPassword
+);
+
+router.delete("/delete-account", [
+    verifyCaptainJWT,
+    body("Password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long")
+],
+    deleteCaptain
 );
 
 export default router;
