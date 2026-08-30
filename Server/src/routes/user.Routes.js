@@ -5,7 +5,8 @@ import {
     loginUser, 
     logoutUser, 
     updateUserDetails, 
-    deleteUser 
+    deleteUser,
+    updatePassword
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -40,6 +41,14 @@ router.patch("/update-details", [
     body("password").not().exists().withMessage("Password cannot be updated from this route")
 ],
     updateUserDetails
+);
+
+router.patch("/update-password", [
+    verifyJWT,
+    body("oldPassword").isLength({ min: 6 }).withMessage("Old password must be at least 6 characters long"),
+    body("newPassword").isLength({ min: 6 }).withMessage("New password must be at least 6 characters long")
+],
+    updatePassword
 );
 
 router.delete("/delete-account", verifyJWT, deleteUser);

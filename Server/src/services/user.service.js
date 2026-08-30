@@ -92,7 +92,18 @@ const updateUserDetailsService = async (userId, { FirstName, LastName, EmailId, 
     return user;
 };
 
-const deleteUserService = async (userId) => {
+const deleteUserService = async (userId, password) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+    if (!password) {
+        throw new ApiError(400, "Password is required");
+    }
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid password");
+    }
     const deletedUser = await User.findByIdAndDelete(userId);
     if (!deletedUser) {
         throw new ApiError(404, "User not found");
@@ -100,4 +111,36 @@ const deleteUserService = async (userId) => {
     return deletedUser;
 };
 
-export { createUser, loginUserService, updateUserDetailsService, deleteUserService };
+const updatePasswordService = async (userId, oldPassword, newPassword) => {
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Both old password and new password are required");
+    }
+
+    if (oldPassword === newPassword) {
+        throw new ApiError(400, "New password cannot be the same as the old password");
+    }
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const isPasswordValid = await user.comparePassword(oldPassword);
+    if (!isPasswordValid) {
+        throw new ApiError(400, "Incorrect old password");
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    const updatedUser = await User.findById(userId).select("-password");
+    return updatedUser;
+};
+
+export { 
+    createUser, 
+    loginUserService, 
+    updateUserDetailsService, 
+    deleteUserService,
+    updatePasswordService
+};

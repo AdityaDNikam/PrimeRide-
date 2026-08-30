@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/user.Routes.js";
+import captionRoutes from "./routes/caption.Routes.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/api/v1/connectionCheck", (req, res) => {
 })
 
 app.use("/api/v1/users/", userRoutes);
+app.use("/api/v1/captains/", captionRoutes);
 
 
 export default app;

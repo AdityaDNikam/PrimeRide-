@@ -3,7 +3,8 @@ import {
     createUser, 
     loginUserService, 
     updateUserDetailsService, 
-    deleteUserService 
+    deleteUserService,
+    updatePasswordService
 } from "../services/user.service.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import asyncHandler from "../utils/AsyncHandler.js";
@@ -121,4 +122,27 @@ const deleteUser = asyncHandler(async (req, res) => {
         .json(new ApiResponce(200, {}, "User deleted successfully"));
 });
 
-export { registerUser, loginUser, logoutUser, updateUserDetails, deleteUser };
+const updatePassword = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { oldPassword, newPassword } = req.body;
+
+    const updatedUser = await updatePasswordService(req.user._id, oldPassword, newPassword);
+
+    return res
+        .status(200)
+        .json(new ApiResponce(200, updatedUser, "Password updated successfully"));
+});
+
+export { 
+    registerUser, 
+    loginUser, 
+    logoutUser, 
+    updateUserDetails, 
+    deleteUser,
+    updatePassword
+};
