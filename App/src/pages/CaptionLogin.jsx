@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useCaptain } from '../context/CaptainContext';
+import axiosInstance from '../services/axios';
 
 const CaptionLogin = () => {
+  const { loginCaptain } = useCaptain();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -14,6 +17,8 @@ const CaptionLogin = () => {
     password: '',
   });
 
+  const [serverError, setServerError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -23,6 +28,8 @@ const CaptionLogin = () => {
       ...prev,
       [name]: value,
     }));
+
+    if (serverError) setServerError('');
 
     // Clear field error as user types
     if (errors[name]) {
@@ -51,31 +58,55 @@ const CaptionLogin = () => {
     // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'At least 6 characters required';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError('');
 
     if (validateForm()) {
+      setLoading(true);
       const payload = {
-        role: 'captain',
-        username: formData.username.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
+        Email: formData.email.trim(),
+        Password: formData.password,
       };
 
-      const jsonPayload = JSON.stringify(payload, null, 2);
+      const jsonPayload = JSON.stringify({
+        role: 'captain',
+        username: formData.username.trim(),
+        ...payload
+      }, null, 2);
 
-      // Console log the data in JSON format
-      console.log('%c[PrimeRide Captain Login] JSON Output:', 'color: #f59e0b; font-weight: bold; font-size: 14px;');
+      // Console log Captain login payload in JSON format as required
+      console.log('%c[PrimeRide Captain Login] JSON Payload:', 'color: #f59e0b; font-weight: bold; font-size: 14px;');
       console.log(jsonPayload);
-      console.log('%c[Parsed Captain Object]:', 'color: #fcd34d; font-weight: bold;', payload);
 
-      setShowSuccessModal(true);
+      try {
+        const response = await axiosInstance.post('/api/v1/captains/login', payload);
+
+        console.log('%c[Server Response]:', 'color: #fcd34d; font-weight: bold;', response.data);
+
+        // Save logged-in captain state in Context API
+        const captainRes = response.data?.data?.captain || { username: formData.username, email: formData.email };
+        loginCaptain(captainRes);
+
+        setShowSuccessModal(true);
+      } catch (err) {
+        console.error('Captain Login Error:', err);
+        const errorMsg =
+          err.response?.data?.message ||
+          (err.response?.data?.errors && err.response.data.errors[0]?.msg) ||
+          'Failed to login captain. Please verify credentials or server connection.';
+        setServerError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
     } else {
       setShowSuccessModal(false);
     }
@@ -273,15 +304,38 @@ const CaptionLogin = () => {
             <span className="text-neutral-500">All fields required</span>
           </div>
 
+          {/* Server Error Message */}
+          {serverError && (
+            <div className="p-3 bg-red-950/60 border border-red-500/50 rounded-xl text-red-300 text-xs font-medium animate-in fade-in duration-200 flex items-center gap-2">
+              <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{serverError}</span>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full mt-4 bg-[#1c129e] hover:bg-[#2317c4] text-white text-base font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-[#1c129e]/30 flex items-center justify-center gap-2 border border-blue-600/30"
+            disabled={loading}
+            className="w-full mt-4 bg-[#1c129e] hover:bg-[#2317c4] disabled:opacity-60 disabled:cursor-not-allowed text-white text-base font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-[#1c129e]/30 flex items-center justify-center gap-2 border border-blue-600/30"
           >
-            <span>Login</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Logging in...
+              </span>
+            ) : (
+              <>
+                <span>Login</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </>
+            )}
           </button>
         </form>
       </div>

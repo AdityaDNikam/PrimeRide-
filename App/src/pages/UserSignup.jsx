@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import axiosInstance from '../services/axios';
 
 const UserSignup = () => {
   const navigate = useNavigate();
+  const { loginUser } = useUser();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -19,6 +22,8 @@ const UserSignup = () => {
     password: '',
   });
 
+  const [serverError, setServerError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -28,6 +33,8 @@ const UserSignup = () => {
       ...prev,
       [name]: value,
     }));
+
+    if (serverError) setServerError('');
 
     // Clear field-specific error as user types
     if (errors[name]) {
@@ -44,11 +51,15 @@ const UserSignup = () => {
     // First Name validation
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First Name is required';
+    } else if (formData.firstName.trim().length < 3) {
+      newErrors.firstName = 'At least 3 characters';
     }
 
     // Last Name validation
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last Name is required';
+    } else if (formData.lastName.trim().length < 3) {
+      newErrors.lastName = 'At least 3 characters';
     }
 
     // Email Id validation
@@ -61,25 +72,27 @@ const UserSignup = () => {
     // Phone Number validation
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Phone Number is required';
-    } else if (!/^\+?[0-9]{7,15}$/.test(formData.phoneNumber.replace(/[\s-]/g, ''))) {
-      newErrors.phoneNumber = 'Enter a valid phone number';
+    } else if (formData.phoneNumber.replace(/\D/g, '').length < 10) {
+      newErrors.phoneNumber = 'At least 10 digits required';
     }
 
     // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'At least 6 characters required';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError('');
 
     if (validateForm()) {
+      setLoading(true);
       const payload = {
         FirstName: formData.firstName.trim(),
         LastName: formData.lastName.trim(),
@@ -90,12 +103,30 @@ const UserSignup = () => {
 
       const jsonPayload = JSON.stringify(payload, null, 2);
 
-      // Console log the User Input in JSON format as required
-      console.log('%c[PrimeRide User SignUp] Data JSON Output:', 'color: #38bdf8; font-weight: bold; font-size: 14px;');
+      // Console log User Input in JSON format as required
+      console.log('%c[PrimeRide User SignUp] Payload JSON:', 'color: #38bdf8; font-weight: bold; font-size: 14px;');
       console.log(jsonPayload);
-      console.log('%c[Parsed Object]:', 'color: #a7f3d0; font-weight: bold;', payload);
 
-      setShowSuccessModal(true);
+      try {
+        const response = await axiosInstance.post('/api/v1/users/register', payload);
+
+        console.log('%c[Server Response]:', 'color: #a7f3d0; font-weight: bold;', response.data);
+
+        // Save registered user state in Context API
+        const userRes = response.data?.data?.user || payload;
+        loginUser(userRes);
+
+        setShowSuccessModal(true);
+      } catch (err) {
+        console.error('User SignUp Error:', err);
+        const errorMsg =
+          err.response?.data?.message ||
+          (err.response?.data?.errors && err.response.data.errors[0]?.msg) ||
+          'Failed to connect to server. Please check backend connection.';
+        setServerError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
     } else {
       setShowSuccessModal(false);
     }
@@ -363,15 +394,38 @@ const UserSignup = () => {
             <span className="text-neutral-500">All fields required</span>
           </div>
 
+          {/* Server Error Message */}
+          {serverError && (
+            <div className="p-3 bg-red-950/60 border border-red-500/50 rounded-xl text-red-300 text-xs font-medium animate-in fade-in duration-200 flex items-center gap-2">
+              <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{serverError}</span>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full mt-3 bg-[#1c129e] hover:bg-[#2317c4] text-white text-base font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-[#1c129e]/30 flex items-center justify-center gap-2 border border-blue-600/30"
+            disabled={loading}
+            className="w-full mt-3 bg-[#1c129e] hover:bg-[#2317c4] disabled:opacity-60 disabled:cursor-not-allowed text-white text-base font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-[#1c129e]/30 flex items-center justify-center gap-2 border border-blue-600/30"
           >
-            <span>Sign Up</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Registering...
+              </span>
+            ) : (
+              <>
+                <span>Sign Up</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </>
+            )}
           </button>
         </form>
       </div>
