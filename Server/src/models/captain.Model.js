@@ -25,14 +25,14 @@ const captainSchema = new mongoose.Schema(
                     message: "Gender must be male, female, or other",
                 },
             },
-            Number: {
+            PhoneNumber: {
                 type: String,
                 required: [true, "Phone number is required"],
                 unique: true,
                 trim: true,
                 minlength: [10, "Phone number must be at least 10 digits long"],
             },
-            Email: {
+            EmailId: {
                 type: String,
                 required: [true, "Email is required"],
                 unique: true,
