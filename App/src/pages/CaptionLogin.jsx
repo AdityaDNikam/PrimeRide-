@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCaptain } from '../context/CaptainContext';
 import axiosInstance from '../services/axios';
 
 const CaptionLogin = () => {
+  const navigate = useNavigate();
   const { loginCaptain } = useCaptain();
   const [formData, setFormData] = useState({
     username: '',
@@ -91,6 +92,15 @@ const CaptionLogin = () => {
         const response = await axiosInstance.post('/api/v1/captains/login', payload);
 
         console.log('%c[Server Response]:', 'color: #fcd34d; font-weight: bold;', response.data);
+
+        // Store captain authentication token in localStorage
+        const token = response.data?.data?.accessToken || response.data?.token || response.data?.data?.token;
+        if (token) {
+          localStorage.setItem('token', token);
+        } else {
+          // Fallback demo token if mock server response is without token
+          localStorage.setItem('token', 'demo-captain-jwt-token');
+        }
 
         // Save logged-in captain state in Context API
         const captainRes = response.data?.data?.captain || { username: formData.username, email: formData.email };
@@ -356,7 +366,10 @@ const CaptionLogin = () => {
               Welcome, Captain <span className="text-white font-medium">{formData.username}</span>! Data has been logged to console.
             </p>
             <button
-              onClick={() => setShowSuccessModal(false)}
+              onClick={() => {
+                setShowSuccessModal(false);
+                navigate('/captain-home');
+              }}
               className="w-full bg-[#1c129e] hover:bg-[#2317c4] text-white text-sm font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 shadow-lg shadow-[#1c129e]/30"
             >
               OK

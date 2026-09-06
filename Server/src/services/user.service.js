@@ -137,10 +137,19 @@ const updatePasswordService = async (userId, oldPassword, newPassword) => {
     return updatedUser;
 };
 
+const getUserProfileService = async (userId) => {
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+    return user;
+};
+
 export { 
     createUser, 
     loginUserService, 
     updateUserDetailsService, 
     deleteUserService,
-    updatePasswordService
+    updatePasswordService,
+    getUserProfileService
 };

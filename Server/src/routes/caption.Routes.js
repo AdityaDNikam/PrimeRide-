@@ -6,7 +6,8 @@ import {
     logoutCaptain, 
     updateCaptain,
     deleteCaptain,
-    updateCaptainPassword
+    updateCaptainPassword,
+    getCaptainProfile
 } from "../controllers/caption.controller.js";
 import { verifyCaptainJWT } from "../middleware/auth.middleware.js";
 
@@ -34,6 +35,8 @@ router.post("/login", [
 ],
     loginCaptain
 );
+
+router.get("/profile", verifyCaptainJWT, getCaptainProfile);
 
 router.post("/logout", verifyCaptainJWT, logoutCaptain);
 

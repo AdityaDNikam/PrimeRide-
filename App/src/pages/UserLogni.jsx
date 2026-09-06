@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import axiosInstance from '../services/axios';
 
 const UserLogni = () => {
+  const navigate = useNavigate();
   const { loginUser } = useUser();
   const [formData, setFormData] = useState({
     username: '',
@@ -90,6 +91,15 @@ const UserLogni = () => {
         const response = await axiosInstance.post('/api/v1/users/login', payload);
 
         console.log('%c[Server Response]:', 'color: #a7f3d0; font-weight: bold;', response.data);
+
+        // Store authentication token in localStorage
+        const token = response.data?.data?.accessToken || response.data?.token || response.data?.data?.token;
+        if (token) {
+          localStorage.setItem('token', token);
+        } else {
+          // Fallback demo token if mock server response is without token
+          localStorage.setItem('token', 'demo-user-jwt-token');
+        }
 
         // Save logged-in user state in Context API
         const userRes = response.data?.data?.user || { username: formData.username, emailId: formData.email };
@@ -344,7 +354,10 @@ const UserLogni = () => {
               Welcome back, <span className="text-white font-medium">{formData.username}</span>! Data has been logged to console.
             </p>
             <button
-              onClick={() => setShowSuccessModal(false)}
+              onClick={() => {
+                setShowSuccessModal(false);
+                navigate('/user-home');
+              }}
               className="w-full bg-[#1c129e] hover:bg-[#2317c4] text-white text-sm font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 shadow-lg shadow-[#1c129e]/30"
             >
               OK

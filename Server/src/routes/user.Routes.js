@@ -6,7 +6,8 @@ import {
     logoutUser, 
     updateUserDetails, 
     deleteUser,
-    updatePassword
+    updatePassword,
+    getUserProfile
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -29,6 +30,8 @@ router.post("/login", [
 ],
     loginUser
 );
+
+router.get("/profile", verifyJWT, getUserProfile);
 
 router.post("/logout", verifyJWT, logoutUser);
 

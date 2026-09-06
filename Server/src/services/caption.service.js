@@ -221,10 +221,19 @@ const updateCaptainPasswordService = async (captainId, oldPassword, newPassword)
     return updatedCaptain;
 };
 
+const getCaptainProfileService = async (captainId) => {
+    const captain = await Captain.findById(captainId).select("-Caption_Details.Password");
+    if (!captain) {
+        throw new ApiError(404, "Captain not found");
+    }
+    return captain;
+};
+
 export { 
     createCaptain, 
     loginCaptainService, 
     updateCaptainService,
     deleteCaptainService,
-    updateCaptainPasswordService
+    updateCaptainPasswordService,
+    getCaptainProfileService
 };

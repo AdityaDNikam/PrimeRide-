@@ -4,7 +4,8 @@ import {
     loginCaptainService, 
     updateCaptainService,
     deleteCaptainService,
-    updateCaptainPasswordService
+    updateCaptainPasswordService,
+    getCaptainProfileService
 } from "../services/caption.service.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import asyncHandler from "../utils/AsyncHandler.js";
@@ -143,11 +144,20 @@ const updateCaptainPassword = asyncHandler(async (req, res) => {
         .json(new ApiResponce(200, updatedCaptain, "Captain password updated successfully"));
 });
 
+const getCaptainProfile = asyncHandler(async (req, res) => {
+    const captain = await getCaptainProfileService(req.captain._id);
+
+    return res
+        .status(200)
+        .json(new ApiResponce(200, captain, "Captain profile fetched successfully"));
+});
+
 export { 
     registerCaptain, 
     loginCaptain, 
     logoutCaptain, 
     updateCaptain,
     deleteCaptain,
-    updateCaptainPassword
+    updateCaptainPassword,
+    getCaptainProfile
 };
