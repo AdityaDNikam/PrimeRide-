@@ -37,8 +37,8 @@ const CaptainProtectWrapper = ({ children }) => {
             setCaptain({
               firstName: details.First_Name || '',
               lastName: details.Last_Name || '',
-              emailId: details.Email || '',
-              phoneNumber: details.Number || '',
+              emailId: details.EmailId || details.Email || '',
+              phoneNumber: details.PhoneNumber || details.Number || '',
               registrationNum: vehicle.Regrestration_Num || '',
               color: vehicle.Color || '',
               capacity: vehicle.Capacity || '',

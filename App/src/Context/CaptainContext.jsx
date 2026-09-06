@@ -28,15 +28,20 @@ const CaptainContextProvider = ({ children }) => {
   const [isCaptainAuthenticated, setIsCaptainAuthenticated] = useState(false);
 
   const loginCaptain = (captainData) => {
+    if (!captainData) return;
+
+    const details = captainData.Caption_Details || captainData;
+    const vehicle = captainData.Vehicle || captainData;
+
     setCaptain({
-      firstName: captainData.FirstName || captainData.firstName || '',
-      lastName: captainData.LastName || captainData.lastName || '',
-      emailId: captainData.EmailId || captainData.emailId || captainData.email || '',
-      phoneNumber: captainData.PhoneNumber || captainData.phoneNumber || '',
-      registrationNum: captainData.Regrestration_Num || captainData.registrationNum || '',
-      color: captainData.Color || captainData.color || '',
-      capacity: captainData.Capacity || captainData.capacity || '',
-      vehicleType: captainData.VehicleType || captainData.vehicleType || '',
+      firstName: details.First_Name || details.firstName || captainData.FirstName || captainData.firstName || '',
+      lastName: details.Last_Name || details.lastName || captainData.LastName || captainData.lastName || '',
+      emailId: details.EmailId || details.Email || details.emailId || details.email || captainData.EmailId || captainData.Email || '',
+      phoneNumber: details.PhoneNumber || details.Number || details.phoneNumber || details.phoneNumber || captainData.PhoneNumber || captainData.Number || '',
+      registrationNum: vehicle.Regrestration_Num || vehicle.registrationNum || captainData.Regrestration_Num || '',
+      color: vehicle.Color || vehicle.color || captainData.Color || '',
+      capacity: vehicle.Capacity || vehicle.capacity || captainData.Capacity || '',
+      vehicleType: vehicle.VehicleType || vehicle.vehicleType || captainData.VehicleType || '',
     });
     setIsCaptainAuthenticated(true);
   };

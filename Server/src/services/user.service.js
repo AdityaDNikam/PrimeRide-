@@ -28,17 +28,19 @@ const loginUserService = async ({ EmailId, PhoneNumber, password }) => {
         throw new ApiError(400, "Password is required");
     }
 
-    if (!EmailId && !PhoneNumber) {
+    const normalizedEmail = (EmailId || "").trim().toLowerCase();
+    const normalizedPhone = (PhoneNumber || "").trim();
+
+    const orConditions = [];
+    if (normalizedEmail) orConditions.push({ EmailId: normalizedEmail });
+    if (normalizedPhone) orConditions.push({ PhoneNumber: normalizedPhone });
+
+    if (orConditions.length === 0) {
         throw new ApiError(400, "Email or Phone Number is required");
     }
 
     // Find user by either EmailId or PhoneNumber, and include the password field
-    const user = await User.findOne({
-        $or: [
-            { EmailId: EmailId || "" },
-            { PhoneNumber: PhoneNumber || "" }
-        ]
-    }).select("+password");
+    const user = await User.findOne({ $or: orConditions }).select("+password");
 
     if (!user) {
         throw new ApiError(401, "Invalid email/phone or password");

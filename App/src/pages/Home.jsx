@@ -3,10 +3,39 @@ import { Link } from 'react-router-dom';
 import trafficBg from '../assets/traffic-signal.png';
 import { useUser } from '../context/UserContext';
 import { useCaptain } from '../context/CaptainContext';
+import axiosInstance from '../services/axios';
 
 const Home = () => {
   const { user, isUserAuthenticated, logoutUser } = useUser();
   const { captain, isCaptainAuthenticated, logoutCaptain } = useCaptain();
+
+  const handleUserLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axiosInstance.post('/api/v1/users/logout', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error('User logout error:', err);
+    } finally {
+      localStorage.removeItem('token');
+      logoutUser();
+    }
+  };
+
+  const handleCaptainLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axiosInstance.post('/api/v1/captains/logout', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error('Captain logout error:', err);
+    } finally {
+      localStorage.removeItem('token');
+      logoutCaptain();
+    }
+  };
 
   return (
     <div className="h-full w-full flex flex-col justify-between bg-black select-none overflow-hidden font-['Outfit',sans-serif]">
@@ -17,7 +46,7 @@ const Home = () => {
           backgroundImage: `url(${trafficBg})`,
         }}
       >
-        {/* Soft overlay gradient to guarantee crisp logo visibility over traffic signal background */}
+        {/* Soft overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/40 to-transparent pointer-events-none" />
 
         {/* Brand Logo Header */}
@@ -30,15 +59,15 @@ const Home = () => {
           {isUserAuthenticated && (
             <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-500/40 text-xs text-emerald-300 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>{user.firstName || user.username || 'Rider'}</span>
-              <button onClick={logoutUser} className="text-neutral-400 hover:text-white ml-1 font-bold">✕</button>
+              <span>{user.firstName || 'Rider'}</span>
+              <button onClick={handleUserLogout} title="Logout" className="text-neutral-400 hover:text-white ml-1 font-bold">✕</button>
             </div>
           )}
           {isCaptainAuthenticated && !isUserAuthenticated && (
             <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-amber-500/40 text-xs text-amber-300 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-              <span>Capt. {captain.firstName || captain.username || 'Driver'}</span>
-              <button onClick={logoutCaptain} className="text-neutral-400 hover:text-white ml-1 font-bold">✕</button>
+              <span>Capt. {captain.firstName || 'Driver'}</span>
+              <button onClick={handleCaptainLogout} title="Logout" className="text-neutral-400 hover:text-white ml-1 font-bold">✕</button>
             </div>
           )}
         </div>
@@ -66,7 +95,7 @@ const Home = () => {
 
           {/* Action Button - Mobile Touch Optimized */}
           <Link
-            to={isUserAuthenticated ? "/login" : "/login"}
+            to={isUserAuthenticated ? "/user-home" : isCaptainAuthenticated ? "/captain-home" : "/login"}
             className="w-full bg-black text-white text-center py-3.5 px-6 rounded-full text-lg font-medium tracking-wide transition-all duration-200 hover:bg-neutral-900 active:scale-95 shadow-xl flex items-center justify-center active:bg-neutral-800"
           >
             <span>Time Matters...!</span>
@@ -78,4 +107,3 @@ const Home = () => {
 };
 
 export default Home;
-

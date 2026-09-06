@@ -1,15 +1,27 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCaptain } from '../context/CaptainContext';
+import axiosInstance from '../services/axios';
 
 const CaptionHome = () => {
   const { captain, logoutCaptain } = useCaptain();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    logoutCaptain();
-    navigate('/captain-login');
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axiosInstance.post('/api/v1/captains/logout', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    } catch (error) {
+      console.error('Captain Logout Error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      logoutCaptain();
+      navigate('/captain-login');
+    }
   };
 
   return (

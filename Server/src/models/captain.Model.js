@@ -47,7 +47,6 @@ const captainSchema = new mongoose.Schema(
             },
             SocketId: {
                 type: String,
-                unique: true,
             }
         },
         Vehicle: {
@@ -96,12 +95,21 @@ const captainSchema = new mongoose.Schema(
 );
 
 captainSchema.pre("save", async function () {
-    if (!this.isModified("Caption_Details.Password")) return;
-
-    this.Caption_Details.Password = await bcrypt.hash(this.Caption_Details.Password, 10);
+    if (this.Caption_Details && this.Caption_Details.Password) {
+        if (!this.Caption_Details.Password.startsWith("$2b$") && !this.Caption_Details.Password.startsWith("$2a$")) {
+            this.Caption_Details.Password = await bcrypt.hash(this.Caption_Details.Password, 10);
+        }
+    }
 });
 
 captainSchema.methods.comparePassword = async function (password) {
+    if (!this.Caption_Details || !this.Caption_Details.Password) return false;
+
+    // Direct comparison fallback if password in DB is plaintext from previous save
+    if (!this.Caption_Details.Password.startsWith("$2b$") && !this.Caption_Details.Password.startsWith("$2a$")) {
+        return password === this.Caption_Details.Password;
+    }
+
     return await bcrypt.compare(password, this.Caption_Details.Password);
 };
 

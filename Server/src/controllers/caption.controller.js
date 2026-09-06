@@ -88,12 +88,13 @@ const loginCaptain = asyncHandler(async (req, res) => {
 });
 
 const logoutCaptain = asyncHandler(async (req, res) => {
-    console.log(`Captain Logged Out Success : ${req.captain.Caption_Details.First_Name}, ${req.captain.Caption_Details.Last_Name}`);
+    console.log(`Captain Logged Out Success : ${req.captain.Caption_Details?.First_Name}, ${req.captain.Caption_Details?.Last_Name}`);
 
     return res
+        .status(200)
         .clearCookie("accessToken", cookieOptions)
         .clearCookie("refreshToken", cookieOptions)
-        .redirect("/login");
+        .json(new ApiResponce(200, {}, "Captain logged out successfully"));
 });
 
 const updateCaptain = asyncHandler(async (req, res) => {

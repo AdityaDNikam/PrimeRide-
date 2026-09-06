@@ -33,7 +33,6 @@ const userSchema = new mongoose.Schema(
         },
         SocketId: {
             type: String,
-            unique: true,
         },
         password: {
             type: String,

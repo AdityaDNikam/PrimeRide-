@@ -6,7 +6,7 @@ const createCaptain = async ({
     Last_Name,
     Gender,
     Number: phoneNumber,
-    Email,
+    Email: emailId,
     Password,
     Regrestration_Num,
     Color,
@@ -19,7 +19,7 @@ const createCaptain = async ({
         !Last_Name ||
         !Gender ||
         !phoneNumber ||
-        !Email ||
+        !emailId ||
         !Password ||
         !Regrestration_Num ||
         !Color ||
@@ -29,10 +29,13 @@ const createCaptain = async ({
         throw new ApiError(400, "All fields are required");
     }
 
+    const normalizedEmail = emailId.trim().toLowerCase();
+    const normalizedPhone = phoneNumber.trim();
+
     const existingCaptain = await Captain.findOne({
         $or: [
-            { "Caption_Details.Email": Email },
-            { "Caption_Details.Number": phoneNumber }
+            { "Caption_Details.EmailId": normalizedEmail },
+            { "Caption_Details.PhoneNumber": normalizedPhone }
         ]
     });
 
@@ -42,18 +45,18 @@ const createCaptain = async ({
 
     const captain = await Captain.create({
         Caption_Details: {
-            First_Name,
-            Last_Name,
+            First_Name: First_Name.trim(),
+            Last_Name: Last_Name.trim(),
             Gender,
-            Number: phoneNumber,
-            Email,
+            PhoneNumber: normalizedPhone,
+            EmailId: normalizedEmail,
             Password,
             SocketId
         },
         Vehicle: {
-            Regrestration_Num,
-            Color,
-            Capacity,
+            Regrestration_Num: Regrestration_Num.trim(),
+            Color: Color.trim(),
+            Capacity: Number(Capacity),
             VehicleType
         }
     });
@@ -61,27 +64,38 @@ const createCaptain = async ({
     return captain;
 };
 
-const loginCaptainService = async ({ Email, Number: phoneNumber, Password }) => {
-    if (!Password) {
+const loginCaptainService = async ({ Email, Number: phoneNumber, EmailId, PhoneNumber, Password, password }) => {
+    const rawEmail = EmailId || Email || "";
+    const rawPhone = PhoneNumber || phoneNumber || "";
+    const pass = Password || password;
+
+    if (!pass) {
         throw new ApiError(400, "Password is required");
     }
 
-    if (!Email && !phoneNumber) {
+    const normalizedEmail = rawEmail.trim().toLowerCase();
+    const normalizedPhone = rawPhone.trim();
+
+    const orConditions = [];
+    if (normalizedEmail) {
+        orConditions.push({ "Caption_Details.EmailId": normalizedEmail });
+    }
+    if (normalizedPhone) {
+        orConditions.push({ "Caption_Details.PhoneNumber": normalizedPhone });
+    }
+
+    if (orConditions.length === 0) {
         throw new ApiError(400, "Email or Phone Number is required");
     }
 
-    const captain = await Captain.findOne({
-        $or: [
-            { "Caption_Details.Email": Email || "" },
-            { "Caption_Details.Number": phoneNumber || "" }
-        ]
-    }).select("+Caption_Details.Password");
+    const captain = await Captain.findOne({ $or: orConditions }).select("+Caption_Details.Password");
 
     if (!captain) {
         throw new ApiError(401, "Invalid email/phone or password");
     }
 
-    const isPasswordValid = await captain.comparePassword(Password);
+    const isPasswordValid = await captain.comparePassword(pass);
+
     if (!isPasswordValid) {
         throw new ApiError(401, "Invalid email/phone or password");
     }
@@ -89,8 +103,6 @@ const loginCaptainService = async ({ Email, Number: phoneNumber, Password }) => 
     const accessToken = captain.generateAccessToken();
     const refreshToken = captain.generateRefreshToken();
 
-    // Since we don't have RefreshToken stored in captain Schema, we just return the tokens.
-    // However, we exclude the password field from the returned captain object.
     const loggedInCaptain = await Captain.findById(captain._id).select("-Caption_Details.Password");
 
     return { captain: loggedInCaptain, accessToken, refreshToken };
@@ -107,12 +119,27 @@ const updateCaptainService = async (captainId, updateData) => {
     }
 
     // Merge Caption_Details safely
-    if (updateData.Caption_Details) {
-        for (const [key, value] of Object.entries(updateData.Caption_Details)) {
-            if (value !== undefined) {
-                captain.Caption_Details[key] = value;
-            }
+    const details = updateData.Caption_Details || {};
+    if (details.First_Name) captain.Caption_Details.First_Name = details.First_Name.trim();
+    if (details.Last_Name) captain.Caption_Details.Last_Name = details.Last_Name.trim();
+    if (details.Gender) captain.Caption_Details.Gender = details.Gender;
+
+    const newEmail = (details.Email || details.EmailId || "").trim().toLowerCase();
+    if (newEmail && newEmail !== captain.Caption_Details.EmailId) {
+        const existingEmail = await Captain.findOne({ "Caption_Details.EmailId": newEmail });
+        if (existingEmail) {
+            throw new ApiError(400, "Email already in use");
         }
+        captain.Caption_Details.EmailId = newEmail;
+    }
+
+    const newPhone = (details.Number || details.PhoneNumber || "").trim();
+    if (newPhone && newPhone !== captain.Caption_Details.PhoneNumber) {
+        const existingNumber = await Captain.findOne({ "Caption_Details.PhoneNumber": newPhone });
+        if (existingNumber) {
+            throw new ApiError(400, "Phone number already in use");
+        }
+        captain.Caption_Details.PhoneNumber = newPhone;
     }
 
     // Merge Vehicle details safely
@@ -134,27 +161,6 @@ const updateCaptainService = async (captainId, updateData) => {
             if (value !== undefined) {
                 captain.location[key] = value;
             }
-        }
-    }
-
-    // Check uniqueness constraints if fields are changed
-    if (
-        updateData.Caption_Details?.Email &&
-        updateData.Caption_Details.Email !== captain.Caption_Details.Email
-    ) {
-        const existingEmail = await Captain.findOne({ "Caption_Details.Email": updateData.Caption_Details.Email });
-        if (existingEmail) {
-            throw new ApiError(400, "Email already in use");
-        }
-    }
-
-    if (
-        updateData.Caption_Details?.Number &&
-        updateData.Caption_Details.Number !== captain.Caption_Details.Number
-    ) {
-        const existingNumber = await Captain.findOne({ "Caption_Details.Number": updateData.Caption_Details.Number });
-        if (existingNumber) {
-            throw new ApiError(400, "Phone number already in use");
         }
     }
 

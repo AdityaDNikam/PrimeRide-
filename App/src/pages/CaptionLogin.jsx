@@ -7,13 +7,11 @@ const CaptionLogin = () => {
   const navigate = useNavigate();
   const { loginCaptain } = useCaptain();
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
   });
 
   const [errors, setErrors] = useState({
-    username: '',
     email: '',
     password: '',
   });
@@ -32,7 +30,6 @@ const CaptionLogin = () => {
 
     if (serverError) setServerError('');
 
-    // Clear field error as user types
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -43,11 +40,6 @@ const CaptionLogin = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
-    // Username validation
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    }
 
     // Email validation
     if (!formData.email.trim()) {
@@ -78,15 +70,8 @@ const CaptionLogin = () => {
         Password: formData.password,
       };
 
-      const jsonPayload = JSON.stringify({
-        role: 'captain',
-        username: formData.username.trim(),
-        ...payload
-      }, null, 2);
-
-      // Console log Captain login payload in JSON format as required
-      console.log('%c[PrimeRide Captain Login] JSON Payload:', 'color: #f59e0b; font-weight: bold; font-size: 14px;');
-      console.log(jsonPayload);
+      console.log('%c[PrimeRide Captain Login] Payload:', 'color: #f59e0b; font-weight: bold; font-size: 14px;');
+      console.log(payload);
 
       try {
         const response = await axiosInstance.post('/api/v1/captains/login', payload);
@@ -98,12 +83,11 @@ const CaptionLogin = () => {
         if (token) {
           localStorage.setItem('token', token);
         } else {
-          // Fallback demo token if mock server response is without token
           localStorage.setItem('token', 'demo-captain-jwt-token');
         }
 
         // Save logged-in captain state in Context API
-        const captainRes = response.data?.data?.captain || { username: formData.username, email: formData.email };
+        const captainRes = response.data?.data?.captain || { email: formData.email };
         loginCaptain(captainRes);
 
         setShowSuccessModal(true);
@@ -124,11 +108,10 @@ const CaptionLogin = () => {
 
   const handleQuickFill = () => {
     setFormData({
-      username: 'captain_jack',
-      email: 'captain.jack@primeride.com',
-      password: 'CaptainSecurePass2026!',
+      email: 'jack.sparrow@primeride.com',
+      password: 'CaptainPassword2026!',
     });
-    setErrors({ username: '', email: '', password: '' });
+    setErrors({ email: '', password: '' });
   };
 
   return (
@@ -171,51 +154,12 @@ const CaptionLogin = () => {
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          {/* Username Input Field */}
-          <div className="flex flex-col">
-            <div className="flex justify-between items-center mb-1">
-              <label htmlFor="captain-username" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-                Username <span className="text-red-500">*</span>
-              </label>
-              {/* Error Popup Right Above Input Field */}
-              {errors.username && (
-                <span className="text-xs text-red-400 font-semibold flex items-center gap-1 animate-pulse bg-red-950/60 text-red-300 px-2 py-0.5 rounded border border-red-500/40">
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.username}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <input
-                id="captain-username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="e.g. captain_jack"
-                className={`w-full pl-10 pr-4 py-3 bg-neutral-900/90 text-white rounded-xl border text-sm outline-none transition-all duration-200 placeholder:text-neutral-500 ${
-                  errors.username
-                    ? 'border-red-500/80 focus:border-red-400 focus:ring-2 focus:ring-red-500/20'
-                    : 'border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20'
-                }`}
-              />
-            </div>
-          </div>
-
           {/* Email Input Field */}
           <div className="flex flex-col">
             <div className="flex justify-between items-center mb-1">
               <label htmlFor="captain-email" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
                 Email Address <span className="text-red-500">*</span>
               </label>
-              {/* Error Popup Right Above Input Field */}
               {errors.email && (
                 <span className="text-xs text-red-400 font-semibold flex items-center gap-1 animate-pulse bg-red-950/60 text-red-300 px-2 py-0.5 rounded border border-red-500/40">
                   <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
@@ -253,7 +197,6 @@ const CaptionLogin = () => {
               <label htmlFor="captain-password" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
                 Password <span className="text-red-500">*</span>
               </label>
-              {/* Error Popup Right Above Input Field */}
               {errors.password && (
                 <span className="text-xs text-red-400 font-semibold flex items-center gap-1 animate-pulse bg-red-950/60 text-red-300 px-2 py-0.5 rounded border border-red-500/40">
                   <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
@@ -363,7 +306,7 @@ const CaptionLogin = () => {
               Login Success Full!
             </h3>
             <p className="text-neutral-400 text-xs mb-6">
-              Welcome, Captain <span className="text-white font-medium">{formData.username}</span>! Data has been logged to console.
+              Welcome back, Captain <span className="text-white font-medium">{formData.email}</span>! Logging in...
             </p>
             <button
               onClick={() => {
