@@ -7,6 +7,7 @@ import CaptionLogin from './pages/CaptionLogin'
 import CaptionSignin from './pages/CaptionSignin'
 import UserHome from './pages/UserHome'
 import CaptionHome from './pages/CaptionHome'
+import Dashboard from './pages/Dashboard'
 import UserProtectWrapper from './pages/UserProtectWrapper'
 import CaptainProtectWrapper from './pages/CaptainProtectWrapper'
 
@@ -21,6 +22,14 @@ const App = () => {
           <Route path='/signup' element={<UserSignup />} />
           <Route path='/captain-login' element={<CaptionLogin />} />
           <Route path='/captain-signup' element={<CaptionSignin />} />
+          <Route
+            path='/dashboard'
+            element={
+              <UserProtectWrapper>
+                <Dashboard />
+              </UserProtectWrapper>
+            }
+          />
           <Route
             path='/user-home'
             element={
