@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import axiosInstance from '../services/axios';
+import mapBg from '../assets/map_bg.png';
 
 const Dashboard = () => {
   const { user, logoutUser } = useUser();
@@ -39,44 +40,20 @@ const Dashboard = () => {
   return (
     <div className="h-full w-full bg-[#f2f4f8] relative flex flex-col justify-between overflow-hidden select-none font-['Outfit',sans-serif]">
       {/* ================= MAP DISPLAY SECTION (TOP ~68% HEIGHT) ================= */}
-      <div className="relative h-[68%] w-full bg-[#f0f3f8] overflow-hidden">
-        
-        {/* --- Map Grid Lines Background (City Streets Vector) --- */}
-        <svg className="absolute inset-0 w-full h-full opacity-70" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="streetGrid" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
-              <rect width="120" height="120" fill="#f2f4f8" />
-              {/* Blocks / Buildings */}
-              <rect x="10" y="10" width="45" height="40" rx="4" fill="#ffffff" stroke="#e1e6ef" strokeWidth="1.5" />
-              <rect x="65" y="10" width="45" height="40" rx="4" fill="#ffffff" stroke="#e1e6ef" strokeWidth="1.5" />
-              <rect x="10" y="60" width="45" height="50" rx="4" fill="#ffffff" stroke="#e1e6ef" strokeWidth="1.5" />
-              <rect x="65" y="60" width="45" height="50" rx="4" fill="#ffffff" stroke="#e1e6ef" strokeWidth="1.5" />
-              {/* Secondary roads */}
-              <line x1="0" y1="55" x2="120" y2="55" stroke="#e2e7f0" strokeWidth="6" />
-              <line x1="60" y1="0" x2="60" y2="120" stroke="#e2e7f0" strokeWidth="6" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#streetGrid)" />
-        </svg>
+      <div className="relative h-[68%] w-full bg-[#e5e9f0] overflow-hidden flex items-center justify-center">
+        {/* --- Background Route Image --- */}
+        <img
+          src={mapBg}
+          alt="Map Route"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
+        />
 
-        {/* --- Blue Route Line SVG --- */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg">
-          {/* Main Blue Zag Line */}
-          <polyline
-            points="180,240 300,210 160,180 238,88"
-            fill="none"
-            stroke="#1d55e8"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Origin Starting Dot */}
-          <circle cx="180" cy="240" r="4" fill="#1d55e8" />
-        </svg>
+        {/* Overlay subtle gradient to seamlessly blend headers */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30 pointer-events-none" />
 
         {/* --- Top Header: Brand Logo & User Menu --- */}
         <div className="absolute top-5 left-5 right-5 z-30 flex items-center justify-between">
-          <h1 className="text-3xl font-black text-[#1d27c9] tracking-tight drop-shadow-sm">
+          <h1 className="text-3xl font-black text-[#1d27c9] tracking-tight drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
             PrimeRide
           </h1>
 
@@ -108,64 +85,6 @@ const Dashboard = () => {
                 </button>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* --- Top-Down Car Markers (3 Cars) --- */}
-
-        {/* Car 1: Top Left */}
-        <div className="absolute top-[20%] left-[16%] z-20 transform -rotate-[35deg] drop-shadow-md">
-          <svg width="40" height="24" viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="2" width="42" height="26" rx="8" fill="#2d2d34" />
-            <rect x="12" y="5" width="26" height="20" rx="5" fill="#1a1a20" />
-            {/* Front windshield */}
-            <path d="M34 7C36 7 37 8 37 15C37 22 36 23 34 23Z" fill="#525b68" />
-            {/* Rear windshield */}
-            <path d="M16 7C14 7 13 8 13 15C13 22 14 23 16 23Z" fill="#525b68" />
-            {/* Side mirrors */}
-            <rect x="30" y="0" width="3" height="3" rx="1" fill="#1a1a20" />
-            <rect x="30" y="27" width="3" height="3" rx="1" fill="#1a1a20" />
-          </svg>
-        </div>
-
-        {/* Car 2: Middle Left */}
-        <div className="absolute top-[40%] left-[10%] z-20 transform -rotate-[15deg] drop-shadow-md">
-          <svg width="42" height="25" viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="2" width="42" height="26" rx="8" fill="#32343a" />
-            <rect x="12" y="5" width="26" height="20" rx="5" fill="#1c1d22" />
-            <path d="M34 7C36 7 37 8 37 15C37 22 36 23 34 23Z" fill="#47505d" />
-            <path d="M16 7C14 7 13 8 13 15C13 22 14 23 16 23Z" fill="#47505d" />
-          </svg>
-        </div>
-
-        {/* Car 3: Bottom Right near badge */}
-        <div className="absolute top-[58%] right-[6%] z-20 transform rotate-[70deg] drop-shadow-md">
-          <svg width="38" height="23" viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="2" width="42" height="26" rx="8" fill="#292a30" />
-            <rect x="12" y="5" width="26" height="20" rx="5" fill="#18191e" />
-            <path d="M34 7C36 7 37 8 37 15C37 22 36 23 34 23Z" fill="#4a5360" />
-          </svg>
-        </div>
-
-        {/* --- Destination Location Pin with Concentric Glowing Aura Circles --- */}
-        <div className="absolute top-[17%] right-[22%] z-20 flex flex-col items-center justify-center">
-          {/* Outer glowing blue rings */}
-          <div className="relative flex items-center justify-center">
-            <div className="w-16 h-16 bg-blue-500/20 rounded-full border border-blue-400/30 animate-ping absolute" />
-            <div className="w-12 h-12 bg-blue-500/25 rounded-full border border-blue-500/40 flex items-center justify-center shadow-lg backdrop-blur-xs">
-              <div className="w-4 h-4 bg-blue-600 rounded-full shadow-inner border border-white" />
-            </div>
-
-            {/* Black Teardrop Pin Icon Above */}
-            <div className="absolute -top-7 transform -translate-y-1">
-              <svg width="28" height="34" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
-                <path
-                  d="M12 0C5.37 0 0 5.37 0 12C0 21 12 30 12 30C12 30 24 21 24 12C24 5.37 18.63 0 12 0Z"
-                  fill="#000000"
-                />
-                <circle cx="12" cy="11" r="4" fill="#ffffff" />
-              </svg>
-            </div>
           </div>
         </div>
 
