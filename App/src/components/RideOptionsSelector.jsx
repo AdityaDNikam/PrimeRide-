@@ -44,10 +44,10 @@ const RideOptionsSelector = ({
   const activeOption = RIDE_OPTIONS.find((r) => r.id === selectedRide) || RIDE_OPTIONS[0];
 
   return (
-    <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col justify-end animate-fadeIn font-['Outfit',sans-serif]">
+    <div className=" relative absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col justify-end animate-fadeIn font-['Outfit',sans-serif]">
       {/* Sliding Sheet Container */}
       <div className="w-full bg-white rounded-t-[32px] p-6 flex flex-col max-h-[85%] shadow-2xl border-t border-neutral-100">
-        
+
         {/* Top Header Row with Handle & Close Button */}
         <div className="flex items-center justify-between pb-4 mb-2 border-b border-neutral-100">
           <div>
@@ -77,11 +77,10 @@ const RideOptionsSelector = ({
               <div
                 key={ride.id}
                 onClick={() => setSelectedRide(ride.id)}
-                className={`flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer select-none ${
-                  isSelected
+                className={`flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer select-none ${isSelected
                     ? 'bg-neutral-50 border-2 border-black shadow-md'
                     : 'bg-white border border-neutral-200 hover:border-neutral-400'
-                }`}
+                  }`}
               >
                 {/* Left Side: Vehicle Image */}
                 <div className="w-20 h-14 shrink-0 flex items-center justify-center mr-3">

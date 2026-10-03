@@ -5,6 +5,7 @@ import axiosInstance from '../services/axios';
 import mapBg from '../assets/map_bg.png';
 import LocationSearchPanel from '../components/LocationSearchPanel';
 import RideOptionsSelector from '../components/RideOptionsSelector';
+import SearchingForRide from '../components/SearchingForRide';
 
 const Dashboard = () => {
   const { user, logoutUser } = useUser();
@@ -13,6 +14,9 @@ const Dashboard = () => {
   // Interactive UI states
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isExploreOpen, setIsExploreOpen] = useState(false);
+  const [isSearchingRide, setIsSearchingRide] = useState(false);
+  const [selectedRideOption, setSelectedRideOption] = useState(null);
+  const [driverDetails, setDriverDetails] = useState(null);
   const [pickup, setPickup] = useState('Current Location');
   const [destination, setDestination] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -85,18 +89,20 @@ const Dashboard = () => {
       </div>
 
       {/* ================= REUSABLE LOCATION SEARCH PANEL (AT BOTTOM / FLOWS UP) ================= */}
-      <LocationSearchPanel
-        pickup={pickup}
-        setPickup={setPickup}
-        destination={destination}
-        setDestination={setDestination}
-        isExpanded={isSearchExpanded}
-        setIsExpanded={setIsSearchExpanded}
-        onConfirmSearch={() => {
-          setIsSearchExpanded(false);
-          setIsExploreOpen(true);
-        }}
-      />
+      {!isSearchingRide && (
+        <LocationSearchPanel
+          pickup={pickup}
+          setPickup={setPickup}
+          destination={destination}
+          setDestination={setDestination}
+          isExpanded={isSearchExpanded}
+          setIsExpanded={setIsSearchExpanded}
+          onConfirmSearch={() => {
+            setIsSearchExpanded(false);
+            setIsExploreOpen(true);
+          }}
+        />
+      )}
 
       {/* ================= RIDE SELECTION MODAL MATCHING SNIPPET ================= */}
       {isExploreOpen && (
@@ -105,8 +111,29 @@ const Dashboard = () => {
           destination={destination}
           onClose={() => setIsExploreOpen(false)}
           onConfirmRide={(ride) => {
-            alert(`Ride Confirmed! Your ${ride.name} (${ride.price}) is on its way.`);
+            setSelectedRideOption(ride);
             setIsExploreOpen(false);
+            setIsSearchingRide(true);
+          }}
+        />
+      )}
+
+      {/* ================= SEARCHING FOR RIDE LOADING PANEL ================= */}
+      {isSearchingRide && (
+        <SearchingForRide
+          pickup={pickup}
+          destination={destination}
+          selectedRide={selectedRideOption}
+          driver={driverDetails}
+          searchDuration={10}
+          onDriverFound={(foundDriver) => {
+            console.log('Driver assigned:', foundDriver);
+            setDriverDetails(foundDriver);
+          }}
+          onCancelSearch={() => {
+            setIsSearchingRide(false);
+            setSelectedRideOption(null);
+            setDriverDetails(null);
           }}
         />
       )}
